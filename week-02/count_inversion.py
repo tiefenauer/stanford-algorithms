@@ -30,3 +30,9 @@ if __name__ == '__main__':
     a = [1, 3, 5, 2, 4, 6]
     print(a)
     print(sort_and_count(a))
+
+    with open('IntegerArray.txt', 'r') as f:
+        a = [int(line) for line in f.readlines()]
+        print(len(a))
+        _, num_inversions = sort_and_count(a)
+        print(num_inversions)

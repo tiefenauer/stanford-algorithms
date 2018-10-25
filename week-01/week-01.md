@@ -12,7 +12,8 @@ Just some justifications why algorithms and understanding them are important.
 
 ## Karatsuba multiplication (KM)
 - KM as special form of IM which fewer number of operations
-- KM is a recursive algorithm
+- KM is a recursive algorithm with 3 recursive calls and some additions
+- you can find an implementation [here](karatsuba_multiplication.py)
 
 ## About the course
 Just some introduction of the topics covered, target audience, prerequisites, grading/assessment and supporting material.
