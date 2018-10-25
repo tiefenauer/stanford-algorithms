@@ -6,10 +6,14 @@ def merge_sort(arr):
     a = merge_sort(arr[:n // 2])
     b = merge_sort(arr[n // 2:])
 
-    # merge subroutine
-    c = [None] * len(arr)
+    return merge(a, b, len(arr))
+
+
+# merge subroutine
+def merge(a, b, n):
+    c = [None] * n
     i, j = 0, 0
-    for k in range(len(arr)):
+    for k in range(n):
         if j >= len(b) or i < len(a) and a[i] < b[j]:
             c[k] = a[i]
             i += 1
