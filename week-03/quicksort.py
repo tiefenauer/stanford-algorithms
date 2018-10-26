@@ -1,20 +1,25 @@
-num_comparisons = 0
-
-
-def quicksort(a, pivot_fun):
+def quicksort(a, pivot_fun, counter=0):
     global num_comparisons
     n = len(a)
     if n <= 1:
-        return a
+        return a, counter
 
-    num_comparisons += n - 1
+    # increase number of comparisons
+    counter += n - 1
+
+    # determine pivot element
     pivot_ix = pivot_fun(a, n)
     p = a[pivot_ix]
+
+    # swap pivot element with first element and do partitioning
     a[0], a[pivot_ix] = a[pivot_ix], a[0]
     i = partition_inplace(a, p)
-    left = a[:i]
-    right = a[i + 1:]
-    return quicksort(left, pivot_fun) + a[i:i + 1] + quicksort(right, pivot_fun)
+
+    # recurively sort left and right partition
+    left, counter = quicksort(a[:i], pivot_fun, counter)
+    right, counter = quicksort(a[i + 1:], pivot_fun, counter)
+
+    return left + a[i:i + 1] + right, counter
 
 
 def pivot_first(a, n):
@@ -50,14 +55,12 @@ def partition_inplace(a, p):
 if __name__ == '__main__':
     arr = [3, 8, 2, 5, 1, 4, 7, 6]
     print(arr)
-    num_comparisons = 0
-    print(quicksort(arr, pivot_fun=pivot_first), num_comparisons)
+    print(quicksort(arr, pivot_fun=pivot_first))
 
-    # 162085, 164123, 138382
-    for pivot_fun in [pivot_first, pivot_last, pivot_median_three]:
+    for pivot_fun, num_comparisons in [(pivot_first, 162085), (pivot_last, 164123), (pivot_median_three, 138382)]:
         with open('QuickSort.txt', 'r') as f:
             arr = [int(line) for line in f.readlines()]
-        num_comparisons = 0
-        arr_sorted = quicksort(arr, pivot_fun=pivot_fun)
-        print(num_comparisons)
+        arr_sorted, counter = quicksort(arr, pivot_fun=pivot_fun)
+        print(counter)
+        print(counter == num_comparisons)
         print(arr_sorted == sorted(arr))
