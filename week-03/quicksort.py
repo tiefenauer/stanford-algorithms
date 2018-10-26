@@ -9,11 +9,10 @@ def quicksort(a, pivot_fun, counter=0):
 
     # determine pivot element
     pivot_ix = pivot_fun(a, n)
-    p = a[pivot_ix]
 
     # swap pivot element with first element and do partitioning
     a[0], a[pivot_ix] = a[pivot_ix], a[0]
-    i = partition_inplace(a, p)
+    i = partition_inplace(a)
 
     # recurively sort left and right partition
     left, counter = quicksort(a[:i], pivot_fun, counter)
@@ -42,10 +41,10 @@ def pivot_median_three(a, n):
     return None
 
 
-def partition_inplace(a, p):
+def partition_inplace(a):
     i = 1
     for j in range(1, len(a)):
-        if a[j] < p:
+        if a[j] < a[0]:
             a[i], a[j] = a[j], a[i]
             i += 1
     a[i - 1], a[0] = a[0], a[i - 1]
@@ -61,6 +60,6 @@ if __name__ == '__main__':
         with open('QuickSort.txt', 'r') as f:
             arr = [int(line) for line in f.readlines()]
         arr_sorted, counter = quicksort(arr, pivot_fun=pivot_fun)
-        print(counter)
-        print(counter == num_comparisons)
-        print(arr_sorted == sorted(arr))
+        print('number of comparisons: ', counter)
+        print('number is correct: ', counter == num_comparisons)
+        print('array is sorted: ', arr_sorted == sorted(arr))

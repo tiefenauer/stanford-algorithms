@@ -39,5 +39,5 @@ if __name__ == '__main__':
     x = np.random.randint(128, size=(8, 8))
     y = np.random.randint(128, size=(8, 8))
     z = strassen(x, y)
-    print(z)
-    print(np.array_equal(z, np.dot(x, y)))
+    print('result of multiplying X * Y', z)
+    print('result is correct:', np.array_equal(z, np.dot(x, y)))

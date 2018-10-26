@@ -29,10 +29,13 @@ def merge_and_count_split(b, c, n):
 if __name__ == '__main__':
     a = [1, 3, 5, 2, 4, 6]
     print(a)
-    print(sort_and_count(a))
+    a_sorted, num_inversions = sort_and_count(a)
+    print(a_sorted)
+    print('number of inversions: ', num_inversions)
 
     with open('IntegerArray.txt', 'r') as f:
         a = [int(line) for line in f.readlines()]
-        print(len(a))
-        _, num_inversions = sort_and_count(a)
-        print(num_inversions)
+        print('number of elements in a: ', len(a))
+        a_sorted, num_inversions = sort_and_count(a)
+        print('a_sorted is sorted: ', a_sorted == sorted(a))
+        print('number of inversions: ', num_inversions)
