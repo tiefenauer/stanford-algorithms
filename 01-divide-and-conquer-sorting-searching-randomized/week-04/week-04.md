@@ -1,6 +1,6 @@
 # Linear-Time selection
 
-## Randomized Selection - Algorithm ([implementation](./randomized_selection.py))
+## Randomized Selection - Algorithm ([implementation](randomized_selection.py))
 
 - selection problem: get the i-th smallest element from an array
 - selection in O(n*log n) is possible with Merge Sort: the element will be at the i-th position
