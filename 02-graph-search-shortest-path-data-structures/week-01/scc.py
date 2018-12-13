@@ -77,7 +77,7 @@ def dfs(node, edges, node_order=None):
     return node_order
 
 
-if __name__ == '__main__':
+def main():
     filename = 'SCC.txt'
     # filename = 'sample_graph.txt'
     with open(filename, 'r') as f:
@@ -89,8 +89,17 @@ if __name__ == '__main__':
                 nodes[a] = Node(a)
             if b not in nodes:
                 nodes[b] = Node(b)
-        edges = [(nodes[a], nodes[b]) for (a,b) in edges]
+        edges = [(nodes[a], nodes[b]) for (a, b) in edges]
 
         sccs = scc(edges)
         sccs_by_size = sorted(sccs, key=len)
         print(','.join(str(len(scc)) for scc in sccs_by_size[:5]))
+
+
+import sys
+import threading
+
+sys.setrecursionlimit(800000)
+threading.stack_size(67108864)
+thread = threading.Thread(target=main)
+thread.start()
