@@ -2,7 +2,7 @@
 
 
 def dfs_1(g, i):
-    global finishing_time
+    global finishing_times
     global explored
     global t
     explored.add(i)
@@ -10,7 +10,7 @@ def dfs_1(g, i):
         if j not in explored:
             dfs_1(g, j)
     t += 1
-    finishing_time[i] = t
+    finishing_times[i] = t
 
 
 def dfs_2(g, i):
@@ -55,12 +55,11 @@ resource.setrlimit(resource.RLIMIT_STACK, (2 ** 29, 2 ** 30))
 
 if __name__ == '__main__':
 
-    num_nodes = 875715
     filename = 'SCC.txt'
     # explored nodes
     explored = set()
     # finishing times
-    finishing_time = {}
+    finishing_times = {}
     # finishing time counter
     t = 0
     # SCC leader
@@ -68,19 +67,19 @@ if __name__ == '__main__':
     # SCC counters
     sccs = {}
 
-    print(f'reading {num_nodes} nodes from {filename}')
+    print(f'reading nodes from {filename}')
     graph, graph_rev = read_graph(filename)
 
     # first pass
     print('DFS: 1st pass on reversed graph')
-    for i in range(num_nodes - 1, 0, -1):
+    for i in reversed(list(graph_rev.keys())):
         if i not in explored:
             dfs_1(graph_rev, i)
 
     # second pass
     print('DFS: 2nd pass on original graph')
     explored.clear()
-    for i in sorted(list(graph.keys()), key=lambda i: finishing_time[i], reverse=True):
+    for i in sorted(list(graph.keys()), key=lambda node: finishing_times[node], reverse=True):
         if i not in explored:
             leader = i
             dfs_2(graph, i)
