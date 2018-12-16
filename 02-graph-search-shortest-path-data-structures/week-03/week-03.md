@@ -30,6 +30,22 @@
 - Application: Speeding up Dijkstra down to O(m*log n)
     - since a minimum is calculated in each loop, a heap could be used
     
+## Heaps: Implementation Details    
+- A heap can be thought of a binary tree (each node has 0..2 children), which is as complete as possible
+    - heap property: each node is <= than its children 
+        --> there are more than 1 variants for the same heap
+        --> the root is the minimum element
+- Array implementation: The root is the first element, its 2 children the 2nd and 3rd element, their children the elements 4 to 8, and so on
+    - the parent of a node at position i is at floor(i/2)
+    - the children of a node at position are at 2i, 2i+1
+- Insertion: a new node inserted in two steps
+    - insert: simply append it at the array, i.e. at the first non-empty position in the tree
+    - bubble up: if the node is smaller than its parent, swap them until the heap property is restored again
+- Extract-min: extracting the minimum is also done in two steps:
+    - rip out the root (=minimum element) --> this leaves a hole
+    - set the last element of the heap (=last element in the array) as the new "root" --> this is most likely not a valid root node
+    - bubble the "root" down by swapping it with the smaller child node until no more possible
+    
 # Balanced Binary Search Tree (BBST)
 
 ## Operations and Applications
