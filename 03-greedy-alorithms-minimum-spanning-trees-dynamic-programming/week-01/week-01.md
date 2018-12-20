@@ -70,6 +70,7 @@ not viewed
     1. start with any edge from X
     2. add cheapest edge to an unexplored vertex to T
     3. repeat from 1 until X = V
+- **cut property**: If an edge has a minimal cost in an arbitrary cut, that edge is guaranteed to appear in the MST
 - in contrast to Dijkstra, PRIM finds the MST, not the shortest path
 
 ## Correctness Proof 1
