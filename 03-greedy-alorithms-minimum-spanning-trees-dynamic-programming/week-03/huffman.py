@@ -31,7 +31,6 @@ if __name__ == '__main__':
         while len(nodes) > 1:
             heappush(nodes, Node(heappop(nodes), heappop(nodes)))
 
-
         def get_depth(node, minmax):
             if node.left_node:
                 depth_left = 1 + get_depth(node.left_node, minmax)
