@@ -19,7 +19,7 @@ class UnionFind:
         for num in range(1, self._size + 1):
             self._uf[num] = (num, 0)
 
-    def find(self, item):
+    def __getitem__(self, item):
         """
         Finds the "leader" of the item <item>
         :param item: the item to check
@@ -44,7 +44,7 @@ class UnionFind:
         """
         if not (1, 1) <= (first, second) <= (self._size, self._size):
             raise ValueError("Items {}, {} should be in the range [1..{}]".format(first, second, self._size))
-        return self.find(first) == self.find(second)
+        return self[first] == self[second]
 
     def union(self, first, second):
         """
@@ -55,8 +55,8 @@ class UnionFind:
         """
         if not (1, 1) <= (first, second) <= (self._size, self._size):
             raise ValueError("Items {}, {} should be in the range [1..{}]".format(first, second, self._size))
-        first_parent = self.find(first)
-        second_parent = self.find(second)
+        first_parent = self[first]
+        second_parent = self[second]
         if first_parent == second_parent:
             return
         self.count -= 1
@@ -100,38 +100,20 @@ class BigClusterFinder:
             bit_1, bit_2 = pair
             distances.append(bit_1 + bit_2)
         distances = [0] + distances
-        unions_zero, unions_one, unions_two = [], [], []
         for distance in distances:
             for i in self._numbers.keys():
                 if (i + distance) in self._numbers:
                     for node_from, bits_from in self._numbers[i]:
                         for node_to, bits_to in self._numbers[i + distance]:
-                            if self._hamming(bits_from, bits_to) == 0:
-                                unions_zero.append((node_from, node_to))
-                            elif self._hamming(bits_from, bits_to) == 1:
-                                unions_one.append((node_from, node_to))
-                            elif self._hamming(bits_from, bits_to) == 2:
-                                unions_two.append((node_from, node_to))
-        self._make_unions(uf, unions_zero)
-        self._make_unions(uf, unions_one)
-        self._make_unions(uf, unions_two)
+                            if hamming(bits_from, bits_to) < 3:
+                                uf.union(node_from, node_to)
         return uf.count
 
-    @staticmethod
-    def _hamming(bits_from, bits_to):
-        hamming = 0
-        for index, bit in enumerate(bits_from):
-            if bit != bits_to[index]:
-                hamming += 1
-        return hamming
 
-    @staticmethod
-    def _make_unions(uf, unions_zero):
-        for node_from, node_to in unions_zero:
-            if not uf.connected(node_from, node_to):
-                uf.union(node_from, node_to)
+def hamming(bits_from, bits_to):
+    return sum(bit_from != bit_to for (bit_from, bit_to) in zip(bits_from, bits_to))
 
 
 if __name__ == "__main__":
     cluster_finder = BigClusterFinder("clustering_big.txt")
-    print(cluster_finder.find_number_of_clusters())
+    print(cluster_finder.find_number_of_clusters())  # 6118
