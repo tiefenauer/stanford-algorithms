@@ -1,4 +1,4 @@
-from heapq import heappop, heappush
+from heapq import heappop, heappush, heapify
 
 
 class Node(object):
@@ -29,6 +29,7 @@ if __name__ == '__main__':
         assert len(nodes) == n_symbols, 'something went wrong'
 
         while len(nodes) > 1:
+            heapify(nodes)
             heappush(nodes, Node(heappop(nodes), heappop(nodes)))
 
         def get_depth(node, minmax):
