@@ -54,31 +54,31 @@ class UnionFind:
         :param second: the second item to be connected
         :return: None
         """
-        # roots = [self[first], self[second]]
-        # # Find the heaviest root according to its weight.
-        # heaviest = max(roots, key=lambda r: self.weights[r])
-        # for r in roots:
-        #     if r != heaviest:
-        #         self.weights[heaviest] += self.weights[r]
-        #         self.parents[r] = heaviest
-        first_parent = self[first]
-        second_parent = self[second]
-        if first_parent == second_parent:
-            # nodes are in the same partition
-            return
-
-        self.count -= 1
-        first_rank = self.weights[first_parent]
-        second_rank = self.weights[second_parent]
-
-        if first_rank > second_rank:
-            self.parents[second_parent] = self.parents[first_parent]
-        elif second_rank > first_rank:
-            self.parents[first_parent] = self.parents[second_parent]
-        else:
-            self.parents[second_parent] = self.parents[first_parent]
-            self.parents[first_parent] = first_parent
-            self.weights[first_parent] = self.weights[first_parent] + 1
+        roots = [self[first], self[second]]
+        # Find the heaviest root according to its weight.
+        heaviest = max(roots, key=lambda r: self.weights[r])
+        for r in roots:
+            if r != heaviest:
+                self.weights[heaviest] += self.weights[r]
+                self.parents[r] = heaviest
+        # first_parent = self[first]
+        # second_parent = self[second]
+        # if first_parent == second_parent:
+        #     # nodes are in the same partition
+        #     return
+        #
+        # self.count -= 1
+        # first_rank = self.weights[first_parent]
+        # second_rank = self.weights[second_parent]
+        #
+        # if first_rank > second_rank:
+        #     self.parents[second_parent] = self.parents[first_parent]
+        # elif second_rank > first_rank:
+        #     self.parents[first_parent] = self.parents[second_parent]
+        # else:
+        #     self.parents[second_parent] = self.parents[first_parent]
+        #     self.parents[first_parent] = first_parent
+        #     self.weights[first_parent] = self.weights[first_parent] + 1
 
     def to_sets(self):
         """Iterates over the sets stored in this structure.
