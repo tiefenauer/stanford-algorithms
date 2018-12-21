@@ -76,44 +76,37 @@ class UnionFind:
         return node
 
 
-class BigClusterFinder:
-
-    def __init__(self, input_file):
-        with open(input_file, "r") as file:
-            nodes, bits_per_node = file.readline().split()
-            self._size = int(nodes)
-            self._bits = int(bits_per_node)
-            self._numbers = {}
-            for node in range(1, self._size + 1):
-                line = file.readline().split()
-                bits = tuple((int(num) for num in line))
-                num = int(''.join(line), 2)
-                if num not in self._numbers:
-                    self._numbers[num] = []
-                self._numbers[num].append((node, bits))
-
-    def find_number_of_clusters(self):
-        uf = UnionFind(self._size)
-        distances = [2 ** i for i in range(self._bits)]
-        distances.extend([-num for num in distances])
-        for pair in itertools.combinations(distances, 2):
-            bit_1, bit_2 = pair
-            distances.append(bit_1 + bit_2)
-        distances = [0] + distances
-        for distance in distances:
-            for i in self._numbers.keys():
-                if (i + distance) in self._numbers:
-                    for node_from, bits_from in self._numbers[i]:
-                        for node_to, bits_to in self._numbers[i + distance]:
-                            if hamming(bits_from, bits_to) < 3:
-                                uf.union(node_from, node_to)
-        return uf.count
-
-
-def hamming(bits_from, bits_to):
-    return sum(bit_from != bit_to for (bit_from, bit_to) in zip(bits_from, bits_to))
+def hamming(bits_1, bits_2):
+    return sum(bit_from != bit_to for (bit_from, bit_to) in zip(bits_1, bits_2))
 
 
 if __name__ == "__main__":
-    cluster_finder = BigClusterFinder("clustering_big.txt")
-    print(cluster_finder.find_number_of_clusters())  # 6118
+    filename = "clustering_big.txt"
+    with open(filename, "r") as f:
+        nodes, bits_per_node = f.readline().split()
+        n_nodes = int(nodes)
+        n_bits = int(bits_per_node)
+        numbers = {}
+        for node in range(1, n_nodes + 1):
+            line = f.readline().split()
+            bits = tuple((int(num) for num in line))
+            num = int(''.join(line), 2)
+            if num not in numbers:
+                numbers[num] = []
+            numbers[num].append((node, bits))
+
+    uf = UnionFind(n_nodes)
+    distances = [2 ** i for i in range(n_bits)]
+    distances.extend([-num for num in distances])
+    for pair in itertools.combinations(distances, 2):
+        bit_1, bit_2 = pair
+        distances.append(bit_1 + bit_2)
+    distances = [0] + distances
+    for distance in distances:
+        for i in numbers.keys():
+            if (i + distance) in numbers:
+                for node_from, bits_from in numbers[i]:
+                    for node_to, bits_to in numbers[i + distance]:
+                        if hamming(bits_from, bits_to) < 3:
+                            uf.union(node_from, node_to)
+    print(uf.count)  # 6118
