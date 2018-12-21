@@ -3,11 +3,6 @@ import itertools
 
 from networkx.utils import UnionFind
 
-
-def hamming(bits_1, bits_2):
-    return sum(bit_from != bit_to for (bit_from, bit_to) in zip(bits_1, bits_2))
-
-
 if __name__ == "__main__":
     filename = "clustering_big.txt"
     with open(filename, "r") as f:
@@ -24,11 +19,11 @@ if __name__ == "__main__":
             neighbors[num] = set()
         neighbors[num].add(node)
 
-    uf = UnionFind(range(n_nodes))
-
     distances = [1 << i for i in range(n_bits)]
     distances += [(1 << ix_1) ^ (1 << ix_2) for (ix_1, ix_2) in itertools.combinations(range(n_bits), 2)]
     distances.append(0)
+
+    uf = UnionFind(range(n_nodes))
 
     for distance in distances:
         for number in neighbors.keys():
