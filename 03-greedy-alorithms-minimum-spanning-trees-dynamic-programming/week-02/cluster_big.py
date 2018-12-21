@@ -14,8 +14,8 @@ class UnionFind:
         if size < 1:
             raise ValueError("size should be greater than one")
         self.count = size
-        self.parents = [None] * size
-        self.weights = [None] * size
+        self.parents = {}
+        self.weights = {}
         for x in range(size):
             self.weights[x] = 0
             self.parents[x] = x
