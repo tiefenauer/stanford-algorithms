@@ -25,9 +25,12 @@ if __name__ == '__main__':
         n_symbols = int(lines[0])
         print(f'{n_symbols} symbols')
         weights = [int(line) for line in lines[1:]]
+
+        # create leaf-nodes from the weights
         nodes = [Node(None, None, weight) for weight in weights]
         assert len(nodes) == n_symbols, 'something went wrong'
 
+        # construct binary tree by merging the two nodes with the least weight
         while len(nodes) > 1:
             heapify(nodes)
             heappush(nodes, Node(heappop(nodes), heappop(nodes)))
