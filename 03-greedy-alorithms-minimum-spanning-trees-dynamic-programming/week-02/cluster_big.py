@@ -12,9 +12,9 @@ if __name__ == "__main__":
     print(f'{n_nodes} nodes')
     print(f'{n_bits} bits per node')
 
+    numbers = [int(''.join(line.split()), 2) for line in lines[1:]]
     neighbors = {}
-    for node, line in enumerate(lines[1:]):
-        num = int(''.join(line.split()), 2)
+    for node, num in enumerate(numbers):
         if num not in neighbors:
             neighbors[num] = set()
         neighbors[num].add(node)
