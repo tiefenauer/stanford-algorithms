@@ -1,6 +1,8 @@
 # https://github.com/sestus/algorithms-stanford
 import itertools
 
+from networkx.utils import groups
+
 
 class UnionFind:
 
@@ -26,6 +28,12 @@ class UnionFind:
         :param item: the item to check
         :return: the leader item that the <item> belongs to
         """
+
+        # check for previously unknown object
+        if item not in self.parents:
+            self.parents[item] = item
+            self.weights[item] = 1
+            return item
 
         # find path of objects leading to the root
         path = [item]
@@ -72,6 +80,23 @@ class UnionFind:
             self.parents[first_parent] = first_parent
             self.weights[first_parent] = self.weights[first_parent] + 1
 
+    def to_sets(self):
+        """Iterates over the sets stored in this structure.
+
+        For example::
+
+            >>> partition = UnionFind('xyz')
+            >>> sorted(map(sorted, partition.to_sets()))
+            [['x'], ['y'], ['z']]
+            >>> partition.union('x', 'y')
+            >>> sorted(map(sorted, partition.to_sets()))
+            [['x', 'y'], ['z']]
+
+        """
+        # TODO In Python 3.3+, this should be `yield from ...`.
+        for block in groups(self.parents).values():
+            yield block
+
 
 def hamming(bits_1, bits_2):
     return sum(bit_from != bit_to for (bit_from, bit_to) in zip(bits_1, bits_2))
@@ -108,4 +133,4 @@ if __name__ == "__main__":
                     for node_to, bits_to in numbers[i + distance]:
                         if hamming(bits_from, bits_to) < 3:
                             uf.union(node_from, node_to)
-    print(uf.count)  # 6118
+    print(len(list(uf.to_sets())))  # 6118
