@@ -27,24 +27,13 @@ class UnionFind:
         """
         if not 1 <= item <= self._size:
             raise ValueError("Item should be in the range [1..{}".format(self._size))
-        parent = self._get_parent(item)
+        parent = self.get_parent(item)
         prev = item
         while self._uf[parent][0] != parent:
             self._uf[prev] = self._uf[parent][0], self._uf[prev][1]
             prev = parent
-            parent = self._get_parent(parent)
+            parent = self.get_parent(parent)
         return parent
-
-    def connected(self, first, second):
-        """
-        Checks whether <first> and <second> are in the same group
-        :param first: the first item to be checked
-        :param second: the second item
-        :return: True if connected, else otherwise
-        """
-        if not (1, 1) <= (first, second) <= (self._size, self._size):
-            raise ValueError("Items {}, {} should be in the range [1..{}]".format(first, second, self._size))
-        return self[first] == self[second]
 
     def union(self, first, second):
         """
@@ -58,7 +47,9 @@ class UnionFind:
         first_parent = self[first]
         second_parent = self[second]
         if first_parent == second_parent:
+            # nodes are in the same partition
             return
+
         self.count -= 1
         first_rank = self._uf[first_parent][1]
         second_rank = self._uf[second_parent][1]
@@ -71,7 +62,7 @@ class UnionFind:
             self._uf[second_parent] = self._uf[first_parent]
             self._uf[first_parent] = (first_parent, self._uf[first_parent][1] + 1)
 
-    def _get_parent(self, item):
+    def get_parent(self, item):
         node, node_range = self._uf[item]
         return node
 
@@ -83,17 +74,19 @@ def hamming(bits_1, bits_2):
 if __name__ == "__main__":
     filename = "clustering_big.txt"
     with open(filename, "r") as f:
-        nodes, bits_per_node = f.readline().split()
-        n_nodes = int(nodes)
-        n_bits = int(bits_per_node)
-        numbers = {}
-        for node in range(1, n_nodes + 1):
-            line = f.readline().split()
-            bits = tuple((int(num) for num in line))
-            num = int(''.join(line), 2)
-            if num not in numbers:
-                numbers[num] = []
-            numbers[num].append((node, bits))
+        lines = f.readlines()
+
+    n_nodes, n_bits = map(int, lines[0].split())
+    print(f'{n_nodes} nodes')
+    print(f'{n_bits} bits per node')
+
+    numbers = {}
+    for node, line in enumerate(lines[1:], 1):
+        bits = tuple(map(int, line.split()))
+        num = int(''.join(line.split()), 2)
+        if num not in numbers:
+            numbers[num] = []
+        numbers[num].append((node, bits))
 
     uf = UnionFind(n_nodes)
     distances = [2 ** i for i in range(n_bits)]
