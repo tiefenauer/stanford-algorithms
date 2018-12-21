@@ -17,12 +17,12 @@ if __name__ == "__main__":
     print(f'{n_nodes} nodes')
     print(f'{n_bits} bits per node')
 
-    numbers = {}
+    neighbors = {}
     for node, line in enumerate(lines[1:]):
         num = int(''.join(line.split()), 2)
-        if num not in numbers:
-            numbers[num] = []
-        numbers[num].append(node)
+        if num not in neighbors:
+            neighbors[num] = set()
+        neighbors[num].add(node)
 
     uf = UnionFind(range(n_nodes))
 
@@ -31,9 +31,9 @@ if __name__ == "__main__":
     distances.append(0)
 
     for distance in distances:
-        for number in numbers.keys():
-            if (number ^ distance) in numbers:
-                for node_from in numbers[number]:
-                    for node_to in numbers[number ^ distance]:
+        for number in neighbors.keys():
+            if (number ^ distance) in neighbors:
+                for node_from in neighbors[number]:
+                    for node_to in neighbors[number ^ distance]:
                         uf.union(node_from, node_to)
     print(len(list(uf.to_sets())))  # 6118
