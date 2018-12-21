@@ -14,10 +14,11 @@ class UnionFind:
         if size < 1:
             raise ValueError("size should be greater than one")
         self.count = size
-        self._size = size
-        self._uf = [None] * (self._size + 1)
-        for num in range(1, self._size + 1):
-            self._uf[num] = (num, 0)
+        self.parents = [None] * (size + 1)
+        self.weights = [None] * (size + 1)
+        for x in range(1, size + 1):
+            self.weights[x] = 0
+            self.parents[x] = x
 
     def __getitem__(self, item):
         """
@@ -25,15 +26,18 @@ class UnionFind:
         :param item: the item to check
         :return: the leader item that the <item> belongs to
         """
-        if not 1 <= item <= self._size:
-            raise ValueError("Item should be in the range [1..{}".format(self._size))
-        parent = self.get_parent(item)
-        prev = item
-        while self._uf[parent][0] != parent:
-            self._uf[prev] = self._uf[parent][0], self._uf[prev][1]
-            prev = parent
-            parent = self.get_parent(parent)
-        return parent
+
+        # find path of objects leading to the root
+        path = [item]
+        root = self.parents[item]
+        while root != path[-1]:
+            path.append(root)
+            root = self.parents[root]
+
+        # compress the path and return
+        for ancestor in path:
+            self.parents[ancestor] = root
+        return root
 
     def union(self, first, second):
         """
@@ -42,8 +46,6 @@ class UnionFind:
         :param second: the second item to be connected
         :return: None
         """
-        if not (1, 1) <= (first, second) <= (self._size, self._size):
-            raise ValueError("Items {}, {} should be in the range [1..{}]".format(first, second, self._size))
         first_parent = self[first]
         second_parent = self[second]
         if first_parent == second_parent:
@@ -51,20 +53,17 @@ class UnionFind:
             return
 
         self.count -= 1
-        first_rank = self._uf[first_parent][1]
-        second_rank = self._uf[second_parent][1]
+        first_rank = self.weights[first_parent]
+        second_rank = self.weights[second_parent]
 
         if first_rank > second_rank:
-            self._uf[second_parent] = self._uf[first_parent][0], self._uf[second_parent][1]
+            self.parents[second_parent] = self.parents[first_parent]
         elif second_rank > first_rank:
-            self._uf[first_parent] = self._uf[second_parent][0], self._uf[first_parent][1]
+            self.parents[first_parent] = self.parents[second_parent]
         else:
-            self._uf[second_parent] = self._uf[first_parent]
-            self._uf[first_parent] = (first_parent, self._uf[first_parent][1] + 1)
-
-    def get_parent(self, item):
-        node, node_range = self._uf[item]
-        return node
+            self.parents[second_parent] = self.parents[first_parent]
+            self.parents[first_parent] = first_parent
+            self.weights[first_parent] = self.weights[first_parent] + 1
 
 
 def hamming(bits_1, bits_2):
