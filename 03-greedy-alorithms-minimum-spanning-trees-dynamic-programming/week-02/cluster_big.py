@@ -4,20 +4,20 @@ import itertools
 
 class UnionFind:
 
-    def __init__(self, size):
+    def __init__(self, elements):
         """
         Creates a new Union-Find data structure that holds <size> elements
         This class uses 1-based indexing, which means that we allocate 1 extra slot,
         but we have a more clear mapping
         :param size: the # of elements that we hold in our UF data structure
         """
-        if size < 1:
-            raise ValueError("size should be greater than one")
-        self.count = size
+        if elements is None:
+            elements = ()
+        self.count = len(elements)
         self.parents = {}
         self.weights = {}
-        for x in range(size):
-            self.weights[x] = 0
+        for x in elements:
+            self.weights[x] = 1
             self.parents[x] = x
 
     def __getitem__(self, item):
@@ -94,7 +94,7 @@ if __name__ == "__main__":
             numbers[num] = []
         numbers[num].append((node, bits))
 
-    uf = UnionFind(n_nodes)
+    uf = UnionFind(range(n_nodes))
     distances = [2 ** i for i in range(n_bits)]
     distances.extend([-num for num in distances])
     for pair in itertools.combinations(distances, 2):
