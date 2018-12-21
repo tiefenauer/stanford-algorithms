@@ -27,19 +27,17 @@ if __name__ == "__main__":
         bits[num] = tuple(map(int, line.split()))
 
     uf = UnionFind(range(n_nodes))
-    distances = [2 ** i for i in range(n_bits)]
-    distances.extend([-num for num in distances])
-    for pair in itertools.combinations(distances, 2):
-        bit_1, bit_2 = pair
-        distances.append(bit_1 + bit_2)
-    distances = [0] + distances
+    distances = [1 << i for i in range(n_bits)]
+    distances += [(1 << ix_1) ^ (1 << ix_2) for (ix_1, ix_2) in itertools.combinations(range(n_bits), 2)]
+    distances.append(0)
+
     for distance in distances:
         for number in numbers.keys():
-            if (number + distance) in numbers:
+            if (number ^ distance) in numbers:
                 for node_from in numbers[number]:
-                    for node_to in numbers[number + distance]:
+                    for node_to in numbers[number ^ distance]:
                         bits_from = bits[number]
-                        bits_to = bits[number + distance]
+                        bits_to = bits[number ^ distance]
                         if hamming(bits_from, bits_to) < 3:
                             uf.union(node_from, node_to)
     print(len(list(uf.to_sets())))  # 6118
