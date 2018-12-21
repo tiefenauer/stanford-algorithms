@@ -14,9 +14,9 @@ class UnionFind:
         if size < 1:
             raise ValueError("size should be greater than one")
         self.count = size
-        self.parents = [None] * (size + 1)
-        self.weights = [None] * (size + 1)
-        for x in range(1, size + 1):
+        self.parents = [None] * size
+        self.weights = [None] * size
+        for x in range(size):
             self.weights[x] = 0
             self.parents[x] = x
 
@@ -46,6 +46,13 @@ class UnionFind:
         :param second: the second item to be connected
         :return: None
         """
+        # roots = [self[first], self[second]]
+        # # Find the heaviest root according to its weight.
+        # heaviest = max(roots, key=lambda r: self.weights[r])
+        # for r in roots:
+        #     if r != heaviest:
+        #         self.weights[heaviest] += self.weights[r]
+        #         self.parents[r] = heaviest
         first_parent = self[first]
         second_parent = self[second]
         if first_parent == second_parent:
@@ -80,7 +87,7 @@ if __name__ == "__main__":
     print(f'{n_bits} bits per node')
 
     numbers = {}
-    for node, line in enumerate(lines[1:], 1):
+    for node, line in enumerate(lines[1:]):
         bits = tuple(map(int, line.split()))
         num = int(''.join(line.split()), 2)
         if num not in numbers:
