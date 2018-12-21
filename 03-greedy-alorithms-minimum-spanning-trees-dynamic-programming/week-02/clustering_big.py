@@ -1,50 +1,33 @@
+import itertools
+
 from networkx.utils import UnionFind
-from tqdm import tqdm
 
-
-def distances_1(bit_string):
-    res = []
-    for i in range(len(bit_string)):
-        bits = list(bit_string)
-        bits[i] = '1'
-        d1_str = ''.join(bits)
-        if d1_str != bit_string:
-            res.append(d1_str)
-        bits[i] = '0'
-        d1_str = ''.join(bits)
-        if d1_str != bit_string:
-            res.append(d1_str)
-    return res
-
-
-if __name__ == '__main__':
-    filename = 'clustering_big.txt'
-    # filename = 'clustering_big_sample_1.txt'
-    # filename = 'input_random_30_128_24.txt' # solution: 127
-    # filename = 'input_random_79_65536_24.txt'  # solution: 29407
-    with open(filename, 'r') as f:
+if __name__ == "__main__":
+    filename = "clustering_big.txt"
+    with open(filename, "r") as f:
         lines = f.readlines()
-        n_vertices, n_bits = map(int, lines[0].split())
-        print(f'{n_vertices} vertices')
-        print(f'{n_bits} bits per vertex')
 
-        vertices = set([int(''.join(bits.split()), 2) for bits in lines[1:]])
-        print(f'{len(vertices)} unique vertices')
+    n_nodes, n_bits = map(int, lines[0].split())
+    print(f'{n_nodes} nodes')
+    print(f'{n_bits} bits per node')
 
-        distances = {0}
-        for d1 in distances_1("0" * 24):
-            distances.add(int(d1, 2))
-            for d2 in distances_1(d1):
-                distances.add(int(d2, 2))
+    numbers = [int(''.join(line.split()), 2) for line in lines[1:]]
+    nodes = {}
+    for node, num in enumerate(numbers):
+        if num not in nodes:
+            nodes[num] = set()
+        nodes[num].add(node)
 
-        print(f'{len(distances)} unique distances')
+    uf = UnionFind(range(n_nodes))
 
-        uf = UnionFind(vertices)
-        print('union-find created')
-        for node in tqdm(vertices):
+    distances = [1 << i for i in range(n_bits)]
+    distances += [(1 << ix_1) ^ (1 << ix_2) for (ix_1, ix_2) in itertools.combinations(range(n_bits), 2)]
+    distances.append(0)
 
-            for d in distances:
-                adjacent_node = node ^ d
-                if adjacent_node in uf.parents:
-                    uf.union(node, adjacent_node)
-        print(len(list(uf.to_sets())))
+    for distance in distances:
+        for number in nodes.keys():
+            if (number ^ distance) in nodes:
+                for node_from in nodes[number]:
+                    for node_to in nodes[number ^ distance]:
+                        uf.union(node_from, node_to)
+    print(len(list(uf.to_sets())))  # 6118
