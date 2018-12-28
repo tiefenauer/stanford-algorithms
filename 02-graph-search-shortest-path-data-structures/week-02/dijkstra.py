@@ -24,7 +24,7 @@ def find_crossing_edges(gr, source, V):
 
 
 def dijkstra(gr, s):
-    X = set([s])
+    X = {s}
     V = set(v for v in gr.keys() if v is not s)
     A = {s: 0}
 
