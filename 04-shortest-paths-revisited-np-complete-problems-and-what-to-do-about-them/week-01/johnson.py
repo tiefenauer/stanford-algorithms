@@ -5,7 +5,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-def bellman_ford(edges, vertices, weights, s):
+def bellman_ford(edges, vertices, weights, incoming_vertices, s):
     n = len(vertices)
     # create (i,v) matrix: i=1..n-1, v=|V|
     A = np.zeros((n, n))
@@ -19,19 +19,20 @@ def bellman_ford(edges, vertices, weights, s):
     # compute DP matrix A
     for i in tqdm(range(1, n)):
         for v in vertices:
-            # Case 2:
             incoming_vertices = set(w for (w, x) in edges if x == v)
-            if incoming_vertices:
+            # Case 2:
+            if v in incoming_vertices:
                 min_s_w_v = min(A[i - 1, w] + weights[(w, v)] for w in incoming_vertices)
+                # min_s_w_v = min(A[i - 1, w] + weights[(w, v)] for w in incoming_vertices[v])
             else:
                 min_s_w_v = math.inf
 
             # take minimum of case 1 and 2
             A[i][v] = min(A[i - 1, v], min_s_w_v)
 
-        if np.array_equal(A[i, :], A[i - 1, :]):
-            print('early stopping because all shortest paths are the same')
-            return A[:i, :]
+        # if np.array_equal(A[i, :], A[i - 1, :]):
+        #     print('early stopping because all shortest paths are the same')
+        #     return A[:i, :]
 
     if np.array_equal(A[-1, :], A[-2, :]):
         print('no negative cycle detected in additional iteration')
@@ -80,6 +81,7 @@ def johnson(filename):
     vertices = set()
     edges = set()
     weights = dict()
+    incoming_vertices = dict()  # precompute these for performance speedup
     for line in lines[1:]:
         u, v, c = map(int, line.split())
         edge = (u, v)
@@ -87,6 +89,9 @@ def johnson(filename):
         weights[edge] = c
         vertices.add(u)
         vertices.add(v)
+        if v not in incoming_vertices:
+            incoming_vertices[v] = set()
+        incoming_vertices[v].add(u)
 
     vertices = list(sorted(vertices))
 
@@ -100,10 +105,10 @@ def johnson(filename):
         weights[(s, vertex)] = 0
     vertices.insert(0, s)
 
-    A = bellman_ford(edges, vertices, weights, s)
+    A = bellman_ford(edges, vertices, weights, incoming_vertices, s)
     if A is not None:
         print('no cycle detected')
-        # print(A)
+        print(A)
 
         # remove artificial start vertex
         vertices.remove(s)
@@ -112,7 +117,7 @@ def johnson(filename):
 
         # set p_i, the vertex weights
         vertex_weights = dict(zip(vertices, A[-1, :]))
-        # print(vertex_weights)
+        print(vertex_weights)
 
         # perform re-weighting
         for u, v in weights.keys():
@@ -133,9 +138,9 @@ def johnson(filename):
 
 
 if __name__ == '__main__':
-    # res_1 = johnson('sample_1.txt')
+    res_1 = johnson('sample_1.txt')
     # res_2 = johnson('sample_2.txt')
-    res_1 = johnson('g1.txt')
-    res_2 = johnson('g2.txt')
-    res_3 = johnson('g3.txt')
+    # res_1 = johnson('g1.txt')
+    # res_2 = johnson('g2.txt')
+    # res_3 = johnson('g3.txt')
     # print(min(res_1, res_2, res_2))
