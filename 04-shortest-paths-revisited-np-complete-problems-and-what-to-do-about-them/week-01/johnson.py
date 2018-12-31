@@ -24,7 +24,8 @@ def bellman_ford(graph, graph_inverted):
     A[s] = 0
 
     # we don't need to compute the full DP matrix, only the last 2 columns
-    for i in tqdm(range(1, n + 1)):
+    arrays_are_equal = False
+    for _ in tqdm(range(1, n + 1)):
         A_next = np.full(n, np.inf)
         for v in graph.keys():
             case_1 = A[v]
@@ -37,14 +38,17 @@ def bellman_ford(graph, graph_inverted):
 
             A_next[v] = min(case_1, case_2)
 
-        if i == n and not np.array_equal(A, A_next):
-            print('negative cycle detected in additional iteration')
-            return None
+        arrays_are_equal = np.array_equal(A, A_next)
+        if arrays_are_equal:
+            print('early stopping because no change in previous iteration')
+            return A[1:]
 
         A = A_next
 
-    print('no cycle detected')
-    # delete first column used for artificial start vertex
+    if not arrays_are_equal:
+        print('negative cycle detected in additional iteration')
+        return None
+    print('no negative cycle detected')
     return A[1:]
 
 
@@ -89,7 +93,7 @@ def johnson(filename):
 
     # create graph as dict: source -> (cost, target)
     graph = defaultdict(set)
-    graph_inverted = defaultdict(set)  # precompute these for performance speedup
+    graph_inverted = defaultdict(set)  # precompute incoming edges for performance speedup
     for line in lines[1:]:
         u, v, c = map(int, line.split())
         graph[u].add((c, v))
@@ -104,7 +108,6 @@ def johnson(filename):
         # negative cost cycle detected
         return math.inf
 
-    print('using shortest path from artificial start vertex as vertex weights')
     return min(A)
 
     # Below code would runs Dijkstra's algorithm for each combination of s-t pairs as part of Johnson's algorithm.
@@ -114,7 +117,8 @@ def johnson(filename):
     # vertex with zero-length, the upper bound for any path is zero. Negative shortest paths will not be
     # affected by the artificial start node. Therefore it is enough to only return the shortest path from the DP-matrix
     # calculated by BF
-
+    #
+    # print('using shortest path from artificial start vertex as vertex weights')
     # vertex_weights = dict(zip(graph.keys(), A))
     #
     # print('re-weighting edges using vertex weights: C_e = C_e + p_u, - p_v')
@@ -143,10 +147,10 @@ if __name__ == '__main__':
     # res_2 = johnson('sample_2.txt')  # negative cycle
     # print('shortest path:', res_2)
 
-    # res_1 = johnson('g1.txt')  # contains a negative cycle
-    # print('shortest path 1:', res_1)
-    # res_2 = johnson('g2.txt')  # contains a negative cycle
-    # print('shortest path 2:', res_2)
-    # res_3 = johnson('g3.txt')  # shortest path: -19
-    # print('shortest path 3:', res_3)
-    # print('shortest shortest path:', min(res_1, res_2, res_3))
+    res_1 = johnson('g1.txt')  # contains a negative cycle
+    print('shortest path 1:', res_1)
+    res_2 = johnson('g2.txt')  # contains a negative cycle
+    print('shortest path 2:', res_2)
+    res_3 = johnson('g3.txt')  # shortest path: -19
+    print('shortest path 3:', res_3)
+    print('shortest shortest path:', min(res_1, res_2, res_3))
