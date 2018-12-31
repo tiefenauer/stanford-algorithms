@@ -1,71 +1,80 @@
 import math
-from heapq import heappush
+from collections import defaultdict
+from heapq import heappop, heappush
 
 import numpy as np
 from tqdm import tqdm
 
 
-def bellman_ford(edges, vertices, weights, incoming_vertices, s):
-    n = len(vertices)
-    # create (i,v) matrix: i=1..n-1, v=|V|
-    A = np.zeros((n, n))
-    # assert len(A) == n - 1, '(i,v) matrix: i should be n-1'
-    # assert len(A[0]) == n, '(i,v) matrix: v should be n'
+def bellman_ford(graph, graph_inverted):
+    """
+    Implementation of the Bellman-Ford algorithm to find the single-source shortest path for a graph possibly containing
+    negative edges.
+    """
+    print('creating modified graph by adding artificial start vertex s (id=0) with zero-edge to each vertex')
+    s = 0
+    graph_ = defaultdict(set, graph)
+    graph_inverted_ = defaultdict(set, graph_inverted)
+    for vertex in graph.keys():
+        graph_[s].add(vertex)
+        graph_inverted_[vertex].add((0, s))
 
-    # base case
-    A[0, :] = np.inf
+    n = len(graph_)
+    A = np.full((1, n), np.inf)
     A[0, s] = 0
 
-    # compute DP matrix A
-    for i in tqdm(range(1, n)):
-        for v in vertices:
-            incoming_vertices = set(w for (w, x) in edges if x == v)
-            # Case 2:
-            if v in incoming_vertices:
-                min_s_w_v = min(A[i - 1, w] + weights[(w, v)] for w in incoming_vertices)
-                # min_s_w_v = min(A[i - 1, w] + weights[(w, v)] for w in incoming_vertices[v])
+    # compute DP matrix A with additional iteration to detect negative cycles
+    for i in tqdm(range(1, n + 1)):
+        A_next = np.full((1, n), np.inf)
+        for v in graph.keys():
+            case_1 = A[i - 1, v]
+
+            if v in graph_inverted:
+                # v has incoming edges from vertices w: compute path to v with at most i-1 edges from all ws
+                case_2 = min(A[i - 1, w] + c for (c, w) in graph_inverted[v])
             else:
-                min_s_w_v = math.inf
+                case_2 = math.inf
 
-            # take minimum of case 1 and 2
-            A[i][v] = min(A[i - 1, v], min_s_w_v)
+            A_next[0, v] = min(case_1, case_2)
 
-        # if np.array_equal(A[i, :], A[i - 1, :]):
-        #     print('early stopping because all shortest paths are the same')
-        #     return A[:i, :]
+        A = np.concatenate((A, A_next))
 
-    if np.array_equal(A[-1, :], A[-2, :]):
-        print('no negative cycle detected in additional iteration')
-        return A[:-1, 1:]
-    return None
+    if not np.array_equal(A[-1, :], A[-2, :]):
+        print('negative cycle detected in additional iteration')
+        return None
 
-
-def dijkstra(s, edges, weights, vertices):
-    X = {s}
-    V = set(v for v in vertices if v != s)
-    A = {s: 0}
-    next_vertex = s
-    while V:
-        minimum = math.inf
-        for source, total_weight in A.items():
-            crossing_edges = [(u, v) for (u, v) in edges if u in X and v in V]
-            for (u, v) in crossing_edges:
-                weight = weights[(u, v)]
-                if total_weight + weight < minimum:
-                    minimum = total_weight + weight
-                    next_vertex = v
-        V.remove(next_vertex)
-        X.add(next_vertex)
-        A[next_vertex] = minimum
+    print('no cycle detected')
     return A
 
 
-def find_crossing_edges(gr, source, V):
-    crossing_edges = []
-    for (target, weight) in gr[source]:
-        if target in V:
-            crossing_edges.append((target, weight))
-    return crossing_edges
+def dijkstra(graph, s, t):
+    """
+    Heap-based implementation of Dijkstra's algoritm for SSSP for a given source vertex s and target vertex t
+    :param graph: graph as dictionary mapping the edges for each vertex as follows:
+                    source_vertex -> {(cost, target_vertex}
+    :param s: start vertex
+    :param t: target vertex
+    :return: the cost and path of the minimal path from s to t if there is one, else infinity
+    """
+    q, seen, mins = [(0, s, ())], set(), {s: 0}
+    while q:
+        (cost, v1, path) = heappop(q)
+        if v1 not in seen:
+            seen.add(v1)
+            path = (v1, path)
+            if v1 == t:
+                return cost, path
+
+            for c, v2 in graph.get(v1, ()):
+                if v2 in seen:
+                    continue
+                prev = mins.get(v2, None)
+                next = cost + c
+                if prev is None or next < prev:
+                    mins[v2] = next
+                    heappush(q, (next, v2, path))
+
+    return float("inf")
 
 
 def johnson(filename):
@@ -77,70 +86,67 @@ def johnson(filename):
     print(f'number of vertices: {n_vertices}')
     print(f'number of edges: {n_edges}')
 
-    # read weights
-    vertices = set()
-    edges = set()
-    weights = dict()
-    incoming_vertices = dict()  # precompute these for performance speedup
+    # create graph as dict: source -> (cost, target)
+    graph = defaultdict(set)
+    graph_inverted = defaultdict(set)  # precompute these for performance speedup
     for line in lines[1:]:
         u, v, c = map(int, line.split())
-        edge = (u, v)
-        edges.add(edge)
-        weights[edge] = c
-        vertices.add(u)
-        vertices.add(v)
-        if v not in incoming_vertices:
-            incoming_vertices[v] = set()
-        incoming_vertices[v].add(u)
+        graph[u].add((c, v))
+        graph_inverted[v].add((c, u))
 
-    vertices = list(sorted(vertices))
+    assert len(graph.keys()) == n_vertices, 'length of vertices does not match'
+    assert len(list(edge for edges in graph.values() for edge in edges)) == n_edges, 'length of edges does not match'
 
-    assert len(vertices) == n_vertices, 'length of vertices does not match'
-    assert len(weights) == n_edges, 'length of edges does not match'
+    print('running Bellman-Ford once to get single-source shortest path for a graph with possibly negative edges')
+    A = bellman_ford(graph, graph_inverted)
+    if A is None:
+        # negative cost cycle detected
+        return math.inf
 
-    # add artificial start vertex s (id=0) with zero-edge to each vertex
-    s = 0
-    for vertex in vertices:
-        edges.add((s, vertex))
-        weights[(s, vertex)] = 0
-    vertices.insert(0, s)
+    print('using shortest path from artificial start vertex as vertex weights')
+    shortest_paths = A[-1, 1:]
+    return min(shortest_paths)
 
-    A = bellman_ford(edges, vertices, weights, incoming_vertices, s)
-    if A is not None:
-        print('no cycle detected')
-        print(A)
+    # Below code would runs Dijkstra's algorithm for each combination of s-t pairs as part of Johnson's algorithm.
+    # However, this is not necessary, because the BF algorithm will find the shortest path in a modified graph G' by
+    # adding an artificial start node s with direct edges of length zero to all nodes in the original graph G. The
+    # shortest path in G' will therefore be equal to the shortest path in G. Because s is directly connected to every
+    # vertex with zero-length, the upper bound for any path is zero. Negative shortest paths will not be
+    # affected by the artificial start node. Therefore it is enough to only return the shortest path from the DP-matrix
+    # calculated by BF
 
-        # remove artificial start vertex
-        vertices.remove(s)
-        edges = [(u, v) for (u, v) in edges if u != s and v != s]
-        weights = dict(((u, v), c) for ((u, v), c) in weights.items() if u != s and v != s)
-
-        # set p_i, the vertex weights
-        vertex_weights = dict(zip(vertices, A[-1, :]))
-        print(vertex_weights)
-
-        # perform re-weighting
-        for u, v in weights.keys():
-            weights[(u, v)] = weights[(u, v)] + vertex_weights[u] - vertex_weights[v]
-
-        assert all(w >= 0 for w in weights.values()), 're-weighting should result in nonnegative weights'
-
-        # run djikstra n times with different start vertex
-        shortest_paths = []
-        for vertex in vertices:
-            A = dijkstra(vertex, edges, weights, vertices)
-            shortest_path = min(A.values())
-            print('shortest path:', shortest_path)
-            heappush(shortest_paths, shortest_path)
-
-    # cycle detected
-    return math.inf
+    # vertex_weights = dict(zip(graph.keys(), shortest_paths))
+    #
+    # print('re-weighting edges using vertex weights: C_e = C_e + p_u, - p_v')
+    # for u, edges in graph.items():
+    #     graph[u] = set((c + vertex_weights[u] - vertex_weights[v], v) for (c, v) in edges)
+    #
+    # assert all(
+    #     c >= 0 for edges in graph.values() for (c, v) in edges), 're-weighting should result in nonnegative weights'
+    #
+    # print('running Dijkstra\'s SSSP algorithm on all combinations of s-t pairs')
+    # from itertools import combinations
+    # min_cost = math.inf
+    # for s, t in tqdm(combinations(graph.keys(), 2), total=999000):
+    #     cost, path = dijkstra(graph, s, t)
+    #     original_cost = cost - vertex_weights[s] + vertex_weights[t]
+    #     if original_cost < min_cost:
+    #         min_cost = original_cost
+    # return min_cost
 
 
 if __name__ == '__main__':
-    res_1 = johnson('sample_1.txt')
-    # res_2 = johnson('sample_2.txt')
-    # res_1 = johnson('g1.txt')
-    # res_2 = johnson('g2.txt')
-    # res_3 = johnson('g3.txt')
-    # print(min(res_1, res_2, res_2))
+    # test cases from:
+    # https://www.coursera.org/learn/algorithms-npcomplete/discussions/weeks/1/threads/pt2lOePoEeaOJwr5wT2zdA
+    # res_1 = johnson('sample_1.txt')  # -2
+    # print('shortest path:', res_1)
+    # res_2 = johnson('sample_2.txt')  # negative cycle
+    # print('shortest path:', res_2)
+
+    res_1 = johnson('g1.txt')  # contains a negative cycle
+    print('shortest path 1:', res_1)
+    res_2 = johnson('g2.txt')  # contains a negative cycle
+    print('shortest path 2:', res_2)
+    res_3 = johnson('g3.txt')  # shortest path: -19
+    print('shortest path 3:', res_3)
+    print('shortest shortest path:', min(res_1, res_2, res_3))
